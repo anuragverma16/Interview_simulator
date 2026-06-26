@@ -10,8 +10,11 @@ import DailyProblemSchedule from '../models/DailyProblemSchedule.js';
 import { syncCodingXp } from '../services/achievementService.js';
 import {
   buildPublishAt,
+  buildEndAt,
+  getScheduleValidUntil,
   listProblemsForPicker,
   publishDueSchedules,
+  DAILY_WINDOW_MS,
 } from '../services/dailyProblemService.js';
 import { getProblemBySlug } from '../data/leetcodeProblems.js';
 import { asyncHandler, sendSuccess, AppError } from '../utils/helpers.js';
@@ -270,6 +273,33 @@ export const getLogs = asyncHandler(async (req, res) => {
   sendSuccess(res, logs);
 });
 
+function enrichDailySchedule(schedule) {
+  const publishAt = new Date(schedule.publishAt);
+  const validUntil = getScheduleValidUntil(publishAt, schedule);
+  const now = new Date();
+  const problem = getProblemBySlug(schedule.problemSlug);
+
+  let windowStatus = 'scheduled';
+  if (now < publishAt) windowStatus = 'pending';
+  else if (now >= validUntil) windowStatus = 'expired';
+  else windowStatus = 'live';
+
+  return {
+    ...schedule,
+    problemTitle: problem?.title,
+    problemDifficulty: problem?.difficulty,
+    publishAt: publishAt.toISOString(),
+    validUntil: validUntil.toISOString(),
+    endAt: validUntil.toISOString(),
+    windowStatus,
+    isLive: windowStatus === 'live',
+    isExpired: windowStatus === 'expired',
+    isPending: windowStatus === 'pending',
+    isPublished: schedule.notificationSent && now >= publishAt,
+    remainingMs: windowStatus === 'live' ? Math.max(0, validUntil.getTime() - now.getTime()) : 0,
+  };
+}
+
 export const getDailyProblemSchedules = asyncHandler(async (req, res) => {
   const schedules = await DailyProblemSchedule.find()
     .sort({ scheduleDate: -1 })
@@ -277,17 +307,7 @@ export const getDailyProblemSchedules = asyncHandler(async (req, res) => {
     .populate('createdBy', 'name')
     .lean();
 
-  const enriched = schedules.map((s) => {
-    const p = getProblemBySlug(s.problemSlug);
-    return {
-      ...s,
-      problemTitle: p?.title,
-      problemDifficulty: p?.difficulty,
-      isPublished: s.notificationSent && new Date() >= new Date(s.publishAt),
-    };
-  });
-
-  sendSuccess(res, enriched);
+  sendSuccess(res, schedules.map(enrichDailySchedule));
 });
 
 export const getDailyProblemPicker = asyncHandler(async (req, res) => {
@@ -296,7 +316,7 @@ export const getDailyProblemPicker = asyncHandler(async (req, res) => {
 });
 
 export const upsertDailyProblemSchedule = asyncHandler(async (req, res) => {
-  const { scheduleDate, problemSlug, publishTime, customTitle } = req.body;
+  const { scheduleDate, problemSlug, publishTime, endDate, endTime, customTitle } = req.body;
   if (!scheduleDate || !problemSlug) {
     throw new AppError('Date and problem are required', 400);
   }
@@ -305,14 +325,22 @@ export const upsertDailyProblemSchedule = asyncHandler(async (req, res) => {
   if (!problem) throw new AppError('Problem not found', 404);
 
   const publishAt = buildPublishAt(scheduleDate, publishTime || '00:00');
+  const validUntil = endDate && endTime
+    ? buildEndAt(endDate, endTime)
+    : new Date(publishAt.getTime() + DAILY_WINDOW_MS);
+
+  if (validUntil.getTime() <= publishAt.getTime()) {
+    throw new AppError('End time must be after publish time', 400);
+  }
+
   const now = new Date();
-  const notificationSent = now >= publishAt;
 
   const schedule = await DailyProblemSchedule.findOneAndUpdate(
     { scheduleDate },
     {
       problemSlug,
       publishAt,
+      validUntil,
       customTitle: customTitle?.trim() || '',
       createdBy: req.user._id,
       notificationSent: false,
@@ -320,7 +348,7 @@ export const upsertDailyProblemSchedule = asyncHandler(async (req, res) => {
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  if (notificationSent) {
+  if (now >= publishAt) {
     await publishDueSchedules();
   }
 
@@ -328,10 +356,10 @@ export const upsertDailyProblemSchedule = asyncHandler(async (req, res) => {
     adminId: req.user._id,
     action: 'schedule_daily_problem',
     target: scheduleDate,
-    details: { problemSlug, publishAt, title: problem.title },
+    details: { problemSlug, publishAt, validUntil, title: problem.title },
   });
 
-  sendSuccess(res, schedule, 'Daily problem scheduled');
+  sendSuccess(res, enrichDailySchedule(schedule.toObject()), 'Daily problem scheduled');
 });
 
 export const deleteDailyProblemSchedule = asyncHandler(async (req, res) => {
@@ -344,12 +372,18 @@ export const publishDailyProblemNow = asyncHandler(async (req, res) => {
   const schedule = await DailyProblemSchedule.findOne({ scheduleDate: req.params.date });
   if (!schedule) throw new AppError('Schedule not found', 404);
 
+  const oldPublish = new Date(schedule.publishAt);
+  const oldEnd = getScheduleValidUntil(oldPublish, schedule);
+  const windowMs = Math.max(60_000, oldEnd.getTime() - oldPublish.getTime());
+
   schedule.publishAt = new Date();
+  schedule.validUntil = new Date(schedule.publishAt.getTime() + windowMs);
   schedule.notificationSent = false;
   await schedule.save();
   await publishDueSchedules();
 
-  sendSuccess(res, schedule, 'Daily problem published and users notified');
+  const fresh = await DailyProblemSchedule.findOne({ scheduleDate: req.params.date }).lean();
+  sendSuccess(res, enrichDailySchedule(fresh), 'Daily problem published and users notified');
 });
 
 export const getLeaderboard = asyncHandler(async (req, res) => {

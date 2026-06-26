@@ -14,7 +14,14 @@ export function buildPublishAt(scheduleDate, timeStr = '00:00') {
   return d;
 }
 
-export function getScheduleValidUntil(publishAt) {
+export function buildEndAt(endDate, endTime = '23:59') {
+  return buildPublishAt(endDate, endTime);
+}
+
+export function getScheduleValidUntil(publishAt, schedule = null) {
+  if (schedule?.validUntil) {
+    return new Date(schedule.validUntil);
+  }
   return new Date(new Date(publishAt).getTime() + DAILY_WINDOW_MS);
 }
 
@@ -30,7 +37,7 @@ export async function resolveDailyProblem(date = new Date()) {
 
   if (schedule) {
     const publishAt = new Date(schedule.publishAt);
-    const validUntil = getScheduleValidUntil(publishAt);
+    const validUntil = getScheduleValidUntil(publishAt, schedule);
     const problem = getProblemBySlug(schedule.problemSlug);
     if (!problem) {
       return { problem: getDailyStreakProblem(date), pending: false, expired: false, schedule: null, adminScheduled: false };
@@ -80,7 +87,7 @@ export async function getAdminFeaturedPracticeProblem(date = new Date()) {
   if (!adminScheduled || pending || expired || !problem || !schedule) return null;
 
   const publishAt = new Date(schedule.publishAt);
-  const validUntil = getScheduleValidUntil(publishAt);
+  const validUntil = getScheduleValidUntil(publishAt, schedule);
   const remainingMs = Math.max(0, validUntil.getTime() - Date.now());
 
   return {
@@ -103,7 +110,7 @@ export async function resolveDailyProblemForDateStr(dateStr) {
   if (schedule) {
     const problem = getProblemBySlug(schedule.problemSlug);
     const publishAt = new Date(schedule.publishAt);
-    const validUntil = getScheduleValidUntil(publishAt);
+    const validUntil = getScheduleValidUntil(publishAt, schedule);
     const now = new Date();
     if (problem && now >= publishAt && now < validUntil) {
       return { ...problem, dailyDate: dateStr, adminScheduled: true };
@@ -131,9 +138,9 @@ export async function publishDueSchedules() {
     }
 
     const users = await User.find({ role: 'user', isActive: { $ne: false } }).select('_id');
-    const expiresAt = getScheduleValidUntil(sched.publishAt);
+    const expiresAt = getScheduleValidUntil(sched.publishAt, sched);
     const title = sched.customTitle?.trim() || 'New daily problem is live!';
-    const message = `Today's challenge: ${problem.title} (${problem.difficulty}). Find it in Practice Problems — valid for 24 hours.`;
+    const message = `Today's challenge: ${problem.title} (${problem.difficulty}). Find it in Practice Problems before the window ends.`;
 
     if (users.length > 0) {
       await UserNotification.insertMany(

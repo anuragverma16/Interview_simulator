@@ -174,6 +174,14 @@ export const authApi = {
 
 
 
+export const publicApi = {
+
+  getStats: () => api.get('/public/stats'),
+
+};
+
+
+
 // Users
 
 export const userApi = {

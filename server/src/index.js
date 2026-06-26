@@ -21,6 +21,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import achievementRoutes from './routes/achievementRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
 import { warmJavaRuntime } from './services/codeRunner.js';
 import { startDailyProblemScheduler } from './services/dailyProblemService.js';
 import { uploadDir } from './middleware/upload.js';
@@ -63,6 +64,7 @@ app.use('/api', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.get('/api/v1/auth/me', authenticate, getMe);
+app.use('/api/v1/public', publicRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/resume', resumeRoutes);
 app.use('/api/v1/skill-gap', skillGapRoutes);

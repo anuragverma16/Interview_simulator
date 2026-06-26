@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   FileText, Mic, Code2, TrendingUp, Target, Map, Zap, Shield, Users, Star,
   ArrowRight, CheckCircle,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { publicApi } from '../services/api';
 import Navbar from '../components/layout/Navbar';
 import ParticleBackground from '../components/animations/ParticleBackground';
 import MouseGlow from '../components/animations/MouseGlow';
@@ -23,22 +25,40 @@ const features = [
   { icon: Map, title: 'Learning Roadmap', desc: 'Structured learning paths tailored to your career goals.', color: 'from-blue-500 to-indigo-500' },
 ];
 
-const stats = [
-  { value: 50000, suffix: '+', label: 'Interviews Practiced' },
-  { value: 95, suffix: '%', label: 'Success Rate' },
-  { value: 200, suffix: '+', label: 'Companies' },
-  { value: 4.9, suffix: '/5', label: 'User Rating' },
-];
-
 const testimonials = [
   { name: 'Sarah Chen', role: 'Software Engineer @ Google', text: 'InterviewIQ helped me land my dream job at Google. The FAANG interview prep was incredibly realistic.', avatar: 'S' },
   { name: 'Marcus Johnson', role: 'Full Stack Developer', text: 'The resume analyzer boosted my ATS score from 45 to 89. Got 3x more interview callbacks.', avatar: 'M' },
   { name: 'Priya Sharma', role: 'Data Scientist @ Meta', text: 'Voice interview feature with filler word detection transformed my communication skills.', avatar: 'P' },
 ];
 
+const DEFAULT_STATS = [
+  { value: 0, suffix: '+', label: 'Active Users', key: 'totalUsers' as const },
+  { value: 0, suffix: '+', label: 'Problems Solved', key: 'problemsSolved' as const },
+  { value: 0, suffix: '+', label: 'Interviews Completed', key: 'interviewsCompleted' as const },
+  { value: 0, suffix: '+', label: 'Practice Problems', key: 'problemsInBank' as const },
+];
+
 export default function LandingPage() {
+  const { user } = useAuth();
   const heroRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+  const [platformStats, setPlatformStats] = useState(DEFAULT_STATS);
+  const [userCount, setUserCount] = useState(0);
+
+  useEffect(() => {
+    publicApi.getStats()
+      .then(({ data }) => {
+        const s = data.data;
+        setUserCount(s.totalUsers ?? 0);
+        setPlatformStats([
+          { value: s.totalUsers ?? 0, suffix: '+', label: 'Active Users', key: 'totalUsers' },
+          { value: s.problemsSolved ?? 0, suffix: '+', label: 'Problems Solved', key: 'problemsSolved' },
+          { value: s.interviewsCompleted ?? 0, suffix: '+', label: 'Interviews Completed', key: 'interviewsCompleted' },
+          { value: s.problemsInBank ?? 0, suffix: '+', label: 'Practice Problems', key: 'problemsInBank' },
+        ]);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (heroRef.current) {
@@ -48,23 +68,30 @@ export default function LandingPage() {
         { opacity: 1, y: 0, duration: 1, stagger: 0.15, ease: 'power3.out', delay: 0.3 }
       );
     }
-
-    if (statsRef.current) {
-      statsRef.current.querySelectorAll('.stat-value').forEach((el) => {
-        const target = parseFloat(el.getAttribute('data-value') || '0');
-        const suffix = el.getAttribute('data-suffix') || '';
-        const obj = { val: 0 };
-        gsap.to(obj, {
-          val: target,
-          duration: 2,
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-          onUpdate: () => {
-            el.textContent = (target % 1 ? obj.val.toFixed(1) : Math.floor(obj.val).toLocaleString()) + suffix;
-          },
-        });
-      });
-    }
   }, []);
+
+  useEffect(() => {
+    if (!statsRef.current) return;
+    const elements = statsRef.current.querySelectorAll('.stat-value');
+    elements.forEach((el) => {
+      const target = parseFloat(el.getAttribute('data-value') || '0');
+      const suffix = el.getAttribute('data-suffix') || '';
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 2,
+        scrollTrigger: { trigger: el, start: 'top 85%' },
+        onUpdate: () => {
+          el.textContent = Math.floor(obj.val).toLocaleString() + suffix;
+        },
+      });
+    });
+    return () => {
+      ScrollTrigger.getAll().forEach((t) => {
+        if (statsRef.current?.contains(t.trigger as Node)) t.kill();
+      });
+    };
+  }, [platformStats]);
 
   return (
     <div className="min-h-screen overflow-hidden">
@@ -91,9 +118,15 @@ export default function LandingPage() {
             Practice interviews, analyze resumes, identify skill gaps, and predict your career path — all powered by cutting-edge AI.
           </p>
           <div className="hero-animate flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/signup" className="gradient-btn flex items-center gap-2 text-lg">
-              Start Free Trial <ArrowRight className="h-5 w-5" />
-            </Link>
+            {user ? (
+              <Link to="/dashboard" className="gradient-btn flex items-center gap-2 text-lg">
+                Go to Dashboard <ArrowRight className="h-5 w-5" />
+              </Link>
+            ) : (
+              <Link to="/signup" className="gradient-btn flex items-center gap-2 text-lg">
+                Start Free Trial <ArrowRight className="h-5 w-5" />
+              </Link>
+            )}
             <a href="#features" className="glass glass-hover px-8 py-3.5 rounded-xl font-medium">
               Explore Features
             </a>
@@ -161,9 +194,15 @@ export default function LandingPage() {
       <section ref={statsRef} className="py-16 px-6">
         <div className="mx-auto max-w-5xl glass rounded-3xl p-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="stat-value text-3xl md:text-4xl font-bold neon-text" data-value={s.value} data-suffix={s.suffix}>0</div>
+            {platformStats.map((s) => (
+              <div key={s.key} className="text-center">
+                <div
+                  className="stat-value text-3xl md:text-4xl font-bold neon-text"
+                  data-value={s.value}
+                  data-suffix={s.suffix}
+                >
+                  0{s.suffix}
+                </div>
                 <p className="text-white/50 text-sm mt-1">{s.label}</p>
               </div>
             ))}
@@ -212,14 +251,24 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-display)] mb-4">
               Ready to <span className="neon-text">Level Up</span>?
             </h2>
-            <p className="text-white/50 mb-8">Join thousands of professionals who landed their dream jobs with InterviewIQ AI.</p>
-            <Link to="/signup" className="gradient-btn inline-flex items-center gap-2 text-lg">
-              Get Started Free <ArrowRight className="h-5 w-5" />
-            </Link>
+            <p className="text-white/50 mb-8">
+              {userCount > 0
+                ? `Join ${userCount.toLocaleString()}+ learners practicing on InterviewIQ AI.`
+                : 'Join professionals who prepare smarter with InterviewIQ AI.'}
+            </p>
+            {user ? (
+              <Link to="/dashboard" className="gradient-btn inline-flex items-center gap-2 text-lg">
+                Open Dashboard <ArrowRight className="h-5 w-5" />
+              </Link>
+            ) : (
+              <Link to="/signup" className="gradient-btn inline-flex items-center gap-2 text-lg">
+                Get Started Free <ArrowRight className="h-5 w-5" />
+              </Link>
+            )}
             <div className="mt-6 flex items-center justify-center gap-6 text-sm text-white/40">
               <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-emerald-400" /> No credit card</span>
               <span className="flex items-center gap-1"><Shield className="h-4 w-4 text-cyan-400" /> Secure & Private</span>
-              <span className="flex items-center gap-1"><Users className="h-4 w-4 text-purple-400" /> 50K+ users</span>
+              <span className="flex items-center gap-1"><Users className="h-4 w-4 text-purple-400" /> {userCount > 0 ? `${userCount.toLocaleString()}+ users` : 'Growing community'}</span>
             </div>
           </div>
         </FadeInUp>

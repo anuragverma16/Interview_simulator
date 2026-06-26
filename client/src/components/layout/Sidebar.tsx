@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Target, Mic, TrendingUp,
-  Map, Trophy, Menu, X, Sparkles, ListChecks, Flame,
+  Map, Trophy, Menu, X, Sparkles, ListChecks, Flame, Home,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '../../utils/cn';
 const navItems = [
+  { to: '/', icon: Home, label: 'Home', externalHome: true },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/resume', icon: FileText, label: 'Resume Analyzer' },
   { to: '/skill-gap', icon: Target, label: 'Skill Gap' },
@@ -28,8 +29,10 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 min-h-0 overflow-y-auto admin-scrollbar p-4 space-y-1">
-        {navItems.map(({ to, icon: Icon, label }) => {
-          const isActive = location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to));
+        {navItems.map(({ to, icon: Icon, label, externalHome }) => {
+          const isActive = !externalHome && (
+            location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to))
+          );
           return (
             <NavLink
               key={to}

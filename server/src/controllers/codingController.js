@@ -314,9 +314,9 @@ export const getStreak = asyncHandler(async (req, res) => {
   const monthCalendar = buildStreakCalendarForMonth(streak, safeYear, safeMonth);
 
   const publishAt = schedule?.publishAt ? new Date(schedule.publishAt) : null;
-  const validUntil = schedule?.validUntil
-    ? new Date(schedule.validUntil)
-    : (publishAt ? getScheduleValidUntil(publishAt) : null);
+  const validUntil = publishAt && schedule
+    ? getScheduleValidUntil(publishAt, schedule)
+    : null;
 
   let nextResetAt;
   let remainingMs;
@@ -428,9 +428,9 @@ export const startStreak = asyncHandler(async (req, res) => {
   const { pending, expired, schedule, adminScheduled } = await resolveDailyProblem();
   const now = new Date();
   const publishAt = schedule?.publishAt ? new Date(schedule.publishAt) : null;
-  const validUntil = schedule?.validUntil
-    ? new Date(schedule.validUntil)
-    : (publishAt ? getScheduleValidUntil(publishAt) : null);
+  const validUntil = publishAt && schedule
+    ? getScheduleValidUntil(publishAt, schedule)
+    : null;
   let remainingMs;
   if (adminScheduled && pending && publishAt) {
     remainingMs = Math.max(0, publishAt.getTime() - now.getTime());

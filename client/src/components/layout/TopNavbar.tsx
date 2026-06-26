@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
-import { Flame, Settings, LogOut, User, ChevronDown, Trophy } from 'lucide-react';
+import { Flame, Settings, LogOut, User, ChevronDown, Trophy, Home } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import UserAvatar from '../ui/UserAvatar';
@@ -87,6 +87,17 @@ export default function TopNavbar({ streak = 0, streakData = null, className }: 
       >
         <motion.div custom={0} variants={itemVariants} initial="hidden" animate="visible">
           <Link
+            to="/"
+            title="Home"
+            className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-medium text-themed-secondary hover:bg-white/10 transition-colors"
+          >
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
+        </motion.div>
+
+        <motion.div custom={1} variants={itemVariants} initial="hidden" animate="visible">
+          <Link
             to="/coding/daily"
             title="Open daily streak challenge"
             className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-300 hover:bg-orange-500/20 transition-colors"
@@ -96,11 +107,11 @@ export default function TopNavbar({ streak = 0, streakData = null, className }: 
           </Link>
         </motion.div>
 
-        <motion.div custom={1} variants={itemVariants} initial="hidden" animate="visible">
+        <motion.div custom={2} variants={itemVariants} initial="hidden" animate="visible">
           <NavbarNotifications streakData={streakData} />
         </motion.div>
 
-        <motion.div custom={2} variants={itemVariants} initial="hidden" animate="visible" className="relative" ref={menuRef}>
+        <motion.div custom={3} variants={itemVariants} initial="hidden" animate="visible" className="relative" ref={menuRef}>
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
