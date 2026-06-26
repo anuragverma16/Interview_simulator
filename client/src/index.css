@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --color-dark: #0a0a0f;
+  --color-surface: #12121a;
+  --color-surface-light: #1a1a27;
+  --color-neon-cyan: #00f5ff;
+  --color-neon-purple: #a855f7;
+  --color-neon-pink: #ec4899;
+}
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html.theme-dark {
+    color-scheme: dark;
+    --bg-page: #0a0a0f;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.45);
+    --surface-glass: rgba(255, 255, 255, 0.05);
+    --border-themed: rgba(255, 255, 255, 0.1);
+    --surface-elevated: #1a1a27;
+    --surface-hover: rgba(255, 255, 255, 0.05);
+  }
+
+  html.theme-light {
+    color-scheme: light;
+    --bg-page: #f3f4f6;
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-muted: #6b7280;
+    --surface-glass: rgba(255, 255, 255, 0.85);
+    --border-themed: rgba(0, 0, 0, 0.1);
+    --surface-elevated: #ffffff;
+    --surface-hover: rgba(0, 0, 0, 0.04);
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    @apply antialiased;
+    font-family: var(--font-sans);
+  }
+
+  html.theme-dark select {
+    background-color: #12121a;
+    color: #ffffff;
+  }
+
+  html.theme-dark select option {
+    background-color: #12121a;
+    color: #ffffff;
+  }
+}
+
+@layer utilities {
+  .text-themed { color: var(--text-primary); }
+  .text-themed-secondary { color: var(--text-secondary); }
+  .text-muted { color: var(--text-muted); }
+  .bg-themed-elevated { background-color: var(--surface-elevated); }
+  .bg-themed-hover:hover { background-color: var(--surface-hover); }
+  .border-themed { border-color: var(--border-themed); }
+
+  .glass {
+    background: var(--surface-glass);
+    @apply backdrop-blur-xl border;
+    border-color: var(--border-themed);
+  }
+
+  .glass-hover {
+    @apply transition-all duration-300 hover:shadow-lg;
+  }
+
+  html.theme-dark .glass-hover:hover {
+    @apply bg-white/10 border-white/20 shadow-purple-500/10;
+  }
+
+  html.theme-light .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .neon-text {
+    @apply bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent;
+  }
+
+  html.theme-light .neon-text {
+    @apply from-purple-700 via-violet-600 to-fuchsia-600;
+  }
+
+  .neon-border {
+    @apply border border-transparent;
+    background-image: linear-gradient(#12121a, #12121a), linear-gradient(135deg, #00f5ff, #a855f7, #ec4899);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
+  .admin-shell {
+    --admin-accent: #f59e0b;
+    --admin-surface: #0c0c12;
+    --admin-border: rgba(245, 158, 11, 0.12);
+  }
+
+  .admin-card {
+    @apply rounded-2xl border;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-color: var(--admin-border);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .admin-shell input,
+  .admin-shell textarea,
+  .admin-shell select {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+
+  .admin-shell input::placeholder,
+  .admin-shell textarea::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .admin-shell label {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .admin-shell .text-muted {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .admin-bg-grid {
+    background-image:
+      linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%);
+  }
+
+  .admin-card-glow {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .admin-card-glow:hover {
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  .admin-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.25);
+    border-radius: 4px;
+  }
+
+  .gradient-btn {
+    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 px-6 py-3 font-semibold text-white transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ─── Light mode: fix hardcoded white text ─── */
+html.theme-light .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.theme-light .text-white\/90 { color: #111827 !important; }
+html.theme-light .text-white\/80 { color: #1f2937 !important; }
+html.theme-light .text-white\/75 { color: #374151 !important; }
+html.theme-light .text-white\/70 { color: #374151 !important; }
+html.theme-light .text-white\/60 { color: #4b5563 !important; }
+html.theme-light .text-white\/50 { color: #6b7280 !important; }
+html.theme-light .text-white\/45 { color: #6b7280 !important; }
+html.theme-light .text-white\/40 { color: #9ca3af !important; }
+html.theme-light .text-white\/30 { color: #9ca3af !important; }
+
+html.theme-light .bg-\[\#0a0a0f\],
+html.theme-light .bg-\[\#0a0a12\],
+html.theme-light .bg-\[\#1a1a27\] {
+  background-color: #f9fafb !important;
+}
+
+html.theme-light aside.glass,
+html.theme-light .glass.rounded-2xl {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html.theme-light input,
+html.theme-light select,
+html.theme-light textarea {
+  color: #111827;
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+html.theme-light input::placeholder {
+  color: #9ca3af;
+}
+
+html.theme-light select option {
+  background: #ffffff;
+  color: #111827;
+}
+
+/* ─── Coding editor text size (coding page only) ─── */
+.coding-workspace.coding-text-small {
+  --coding-desc-size: 0.8125rem;
+  --coding-mono-size: 0.75rem;
+}
+
+.coding-workspace.coding-text-medium {
+  --coding-desc-size: 0.875rem;
+  --coding-mono-size: 0.8125rem;
+}
+
+.coding-workspace.coding-text-large {
+  --coding-desc-size: 1.0625rem;
+  --coding-mono-size: 0.9375rem;
+}
+
+.coding-workspace .coding-prose {
+  font-size: var(--coding-desc-size, 0.875rem);
+}
+
+.coding-workspace .coding-mono {
+  font-size: var(--coding-mono-size, 0.8125rem);
+}
+
+/* ─── Reduce motion ─── */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
