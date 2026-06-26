@@ -28,12 +28,16 @@ export default function DashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [dash, lb] = await Promise.all([
+        const [dashRes, lbRes] = await Promise.allSettled([
           dashboardApi.get(),
           dashboardApi.leaderboard(),
         ]);
-        setData(dash.data.data);
-        setLeaderboard(lb.data.data);
+        if (dashRes.status === 'fulfilled') {
+          setData(dashRes.value.data.data);
+        }
+        if (lbRes.status === 'fulfilled') {
+          setLeaderboard(lbRes.value.data.data);
+        }
         await refreshUser();
       } catch (e) {
         console.error(e);

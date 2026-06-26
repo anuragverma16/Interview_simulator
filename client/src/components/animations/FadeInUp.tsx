@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { motion } from 'framer-motion';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
   children: React.ReactNode;
@@ -8,20 +8,20 @@ interface Props {
 }
 
 export default function FadeInUp({ children, className = '', delay = 0 }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
+  const { reduceMotion } = useTheme();
 
-  useEffect(() => {
-    if (!ref.current) return;
-    gsap.fromTo(
-      ref.current,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.8, delay, ease: 'power3.out' }
-    );
-  }, [delay]);
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
-    <div ref={ref} className={className}>
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }

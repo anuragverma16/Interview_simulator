@@ -21,13 +21,13 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);  const location = useLocation();
 
   const sidebar = (
-    <aside className="flex h-full w-64 flex-col glass border-r border-white/10">
+    <aside className="flex h-dvh w-64 flex-col glass border-r border-white/10">
       <div className="flex items-center gap-2 p-6 border-b border-white/10 shrink-0">
         <Sparkles className="h-6 w-6 text-purple-400" />
         <span className="text-lg font-bold font-[family-name:var(--font-display)] neon-text">InterviewIQ</span>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto admin-scrollbar p-4 space-y-1">
         {navItems.map(({ to, icon: Icon, label }) => {
           const isActive = location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to));
           return (
@@ -60,12 +60,12 @@ export default function Sidebar() {
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block">{sidebar}</div>
+      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block lg:h-dvh">{sidebar}</div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 h-full">{sidebar}</div>
+          <div className="absolute left-0 top-0 h-dvh">{sidebar}</div>
         </div>
       )}
     </>

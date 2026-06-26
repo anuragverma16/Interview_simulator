@@ -4,9 +4,9 @@ import {
   LayoutDashboard, Users, ScrollText, Shield, LogOut, Bell, Sparkles, Code2, Trophy,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import Button from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { userInitials } from './adminUtils';
-import Button from '../ui/Button';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true, desc: 'Metrics & analytics' },
@@ -31,8 +31,8 @@ export default function AdminSidebar({ onNavigate }: Props) {
   };
 
   return (
-    <aside className="admin-shell-sidebar flex h-dvh max-h-dvh w-[272px] flex-col border-r border-amber-500/10 bg-[#0a0a10]/95 backdrop-blur-xl">
-      <div className="shrink-0 border-b border-amber-500/10 px-5 py-6">
+    <aside className="admin-shell-sidebar flex h-dvh w-[272px] flex-col border-r border-amber-500/10 bg-[#0a0a10]/95 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-amber-500/10 px-5 py-5">
         <motion.div
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
@@ -55,8 +55,8 @@ export default function AdminSidebar({ onNavigate }: Props) {
         </motion.div>
       </div>
 
-      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-1.5 p-4 overscroll-contain">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25 px-3 mb-2">Navigation</p>
+      <nav className="flex-1 min-h-0 overflow-y-auto admin-scrollbar space-y-1 p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25 px-3 mb-2 sticky top-0 bg-[#0a0a10]/95 py-1 z-10">Navigation</p>
         {navItems.map(({ to, icon: Icon, label, end, desc }, i) => (
           <motion.div
             key={to}
@@ -96,20 +96,9 @@ export default function AdminSidebar({ onNavigate }: Props) {
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-amber-500/10 p-4 space-y-3 bg-[#0a0a10]/95">
-        <Button
-          type="button"
-          variant="danger"
-          size="sm"
-          fullWidth
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4" />
-          Logout
-        </Button>
-
-        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 text-xs font-bold text-amber-200 ring-1 ring-amber-500/20">
+      <div className="shrink-0 border-t border-amber-500/10 bg-[#0a0a10] p-4 space-y-3">
+        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/30 to-orange-500/20 text-xs font-bold text-amber-200 ring-1 ring-amber-500/20">
             {userInitials(user?.name || 'A')}
           </div>
           <div className="min-w-0 flex-1">
@@ -118,12 +107,24 @@ export default function AdminSidebar({ onNavigate }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">System online</p>
-          </div>
-        </div>
+        <Button
+          type="button"
+          variant="danger"
+          size="sm"
+          fullWidth
+          onClick={() => {
+            onNavigate?.();
+            handleLogout();
+          }}
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
+        </Button>
+
+        <p className="text-[10px] text-center text-white/25 flex items-center justify-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Secure admin session
+        </p>
       </div>
     </aside>
   );

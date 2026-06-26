@@ -5,7 +5,6 @@ import { RefreshCw, Clock, LogOut } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAdminRefresh } from '../../contexts/AdminRefreshContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { userInitials } from './adminUtils';
 
 const titles: Record<string, { title: string; subtitle: string }> = {
   '/admin': { title: 'Platform overview', subtitle: 'Real-time metrics, growth analytics & system health' },
@@ -19,19 +18,19 @@ const titles: Record<string, { title: string; subtitle: string }> = {
 export default function AdminHeader() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { triggerRefresh, refreshing } = useAdminRefresh();
   const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 30000);
-    return () => clearInterval(id);
-  }, []);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const base = pathname.startsWith('/admin/users/') && pathname !== '/admin/users'
     ? { title: 'User dossier', subtitle: 'Full profile, activity history & notifications' }
@@ -51,22 +50,16 @@ export default function AdminHeader() {
           <p className="text-xs text-white/40 mt-0.5 max-w-xl">{base.subtitle}</p>
         </motion.div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/45">
             <Clock className="h-3.5 w-3.5 text-amber-400/70" />
             {time.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </div>
-          <div className="hidden md:flex items-center gap-2 rounded-xl border border-amber-500/15 bg-amber-500/5 px-3 py-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/35 to-orange-500/25 text-[10px] font-bold text-amber-100">
-              {userInitials(user?.name || 'A')}
-            </div>
-            <span className="text-xs font-medium text-white/80 max-w-[140px] truncate">{user?.name}</span>
-          </div>
           <Button variant="secondary" size="sm" onClick={triggerRefresh} loading={refreshing}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${refreshing ? '' : ''}`} />
             <span className="hidden sm:inline">Sync data</span>
           </Button>
-          <Button variant="danger" size="sm" onClick={handleLogout} aria-label="Logout">
+          <Button variant="danger" size="sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4" />
             <span>Logout</span>
           </Button>

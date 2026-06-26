@@ -63,7 +63,8 @@ export default function ProblemBank({ language, onLanguageChange, onSelectProble
       setData(res.data);
       setFeatured(res.data.featuredPracticeProblem || null);
       if (res.data.featuredPracticeProblem) {
-        setFeaturedRemaining(res.data.featuredPracticeProblem.timeRemaining);
+        const tr = res.data.featuredPracticeProblem.timeRemaining;
+        setFeaturedRemaining(typeof tr === 'string' ? tr : (tr as { label?: string })?.label ?? '');
       }
       if (res.data.solvedSlugs?.length) {
         setLocalSolved(new Set(res.data.solvedSlugs));
