@@ -1,8 +1,11 @@
 {
   "watch": ["src"],
   "ext": "js,json",
-  "delay": 1500,
+  "delay": 800,
   "signal": "SIGTERM",
   "script": "src/index.js",
-  "legacyWatch": true
+  "legacyWatch": true,
+  "events": {
+    "restart": "node scripts/freePort.js"
+  }
 }

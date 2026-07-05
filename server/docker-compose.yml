@@ -1,3 +1,4 @@
+# Run from server/: docker compose up -d
 version: '3.8'
 
 services:
@@ -11,9 +12,9 @@ services:
     environment:
       MONGO_INITDB_DATABASE: interviewiq
 
-  server:
+  api:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     container_name: interviewiq-server
     ports:
@@ -28,17 +29,17 @@ services:
     depends_on:
       - mongodb
     volumes:
-      - ./server/uploads:/app/uploads
+      - ./uploads:/app/uploads
 
-  client:
+  web:
     build:
-      context: ./client
+      context: ../client
       dockerfile: Dockerfile
     container_name: interviewiq-client
     ports:
       - "5173:80"
     depends_on:
-      - server
+      - api
 
 volumes:
   mongo_data:

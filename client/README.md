@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# InterviewIQ AI — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite + TypeScript client for InterviewIQ AI.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd client
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+App: `http://localhost:5173`  
+API is proxied to `http://localhost:5000` (see `vite.config.ts`).
+
+## Environment
+
+Copy `.env.example` to `.env`:
+
+```bash
+VITE_API_URL=/api/v1
+```
+
+For production (separate API host), set:
+
+```bash
+VITE_API_URL=https://your-api.onrender.com/api/v1
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+Deploy the `dist/` folder to Vercel, Netlify, or Render Static Site.
+
+## Stack
+
+React 19 · Vite · TypeScript · Tailwind CSS v4 · GSAP · Framer Motion · Monaco Editor

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/freePort.js && nodemon",
+    "dev:stack": "concurrently -n api,web -c cyan,magenta \"npm run dev\" \"npm run dev --prefix ../client\"",
     "start": "node src/index.js",
     "seed": "node src/scripts/seedAchievements.js"
   },
@@ -27,6 +28,7 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "nodemon": "^3.1.14"
   }
 }

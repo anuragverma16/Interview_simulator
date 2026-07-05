@@ -1,10 +1,26 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+function resolveMongoUri() {
+  return (
+    process.env.MONGODB_URI
+    || process.env.DATABASE_URL
+    || 'mongodb://localhost:27017/interviewiq'
+  );
+}
+
+export const isCloudHost = Boolean(
+  process.env.RENDER
+  || process.env.RAILWAY_ENVIRONMENT
+  || process.env.FLY_APP_NAME
+  || process.env.VERCEL
+  || process.env.HEROKU_APP_NAME
+);
+
 export const config = {
   port: process.env.PORT || 5000,
-  nodeEnv: process.env.NODE_ENV || 'development',
-  mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/interviewiq',
+  nodeEnv: process.env.NODE_ENV || (isCloudHost ? 'production' : 'development'),
+  mongodbUri: resolveMongoUri(),
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-me',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',

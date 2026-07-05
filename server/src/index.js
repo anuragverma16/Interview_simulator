@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import { config } from './config/index.js';
-import { connectDB } from './config/database.js';
+import { connectDB, markDbShuttingDown } from './config/database.js';
 import { errorHandler, notFound, authenticate } from './middleware/index.js';
 import { getMe } from './controllers/authController.js';
 
@@ -30,8 +30,6 @@ const app = express();
 const isDev = config.nodeEnv === 'development';
 const MAX_PORT_RETRIES = isDev ? 30 : 0;
 
-connectDB();
-
 app.use('/uploads', express.static(uploadDir));
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -40,10 +38,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (_req, res) => {
-  res.json({
-    success: true,
-    message: 'InterviewIQ AI API is running',
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({
+    success: dbReady,
+    message: dbReady ? 'InterviewIQ AI API is running' : 'API up but database not connected',
     aiConfigured: Boolean(config.geminiApiKey),
+    database: dbReady ? 'connected' : 'disconnected',
   });
 });
 
@@ -82,6 +82,7 @@ app.use(errorHandler);
 
 let server = null;
 let shuttingDown = false;
+let dailyScheduler = null;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -113,14 +114,16 @@ function listenOnce() {
 }
 
 async function startServer() {
+  await connectDB();
+
   for (let attempt = 0; attempt <= MAX_PORT_RETRIES; attempt += 1) {
     if (shuttingDown) return;
 
     try {
       server = await listenOnce();
       console.log(`InterviewIQ AI Server running on port ${config.port}`);
-      warmJavaRuntime();
-      startDailyProblemScheduler(60000);
+      warmJavaRuntime().catch(() => {});
+      dailyScheduler = startDailyProblemScheduler(60000);
       return;
     } catch (err) {
       if (err.code === 'EADDRINUSE' && attempt < MAX_PORT_RETRIES) {
@@ -148,6 +151,12 @@ async function startServer() {
 function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
+  markDbShuttingDown();
+
+  if (dailyScheduler) {
+    clearInterval(dailyScheduler);
+    dailyScheduler = null;
+  }
 
   const exitClean = () => {
     mongoose.connection.close().catch(() => {});
@@ -164,7 +173,7 @@ function shutdown() {
   }
 
   server.close(exitClean);
-  setTimeout(exitClean, 800).unref();
+  setTimeout(exitClean, isDev ? 250 : 800).unref();
 }
 
 process.on('SIGTERM', shutdown);
