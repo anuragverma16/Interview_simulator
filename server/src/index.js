@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import { config } from './config/index.js';
 import { connectDB, markDbShuttingDown } from './config/database.js';
+import { verifyProductionEnv } from './config/verifyEnv.js';
 import { errorHandler, notFound, authenticate } from './middleware/index.js';
 import { getMe } from './controllers/authController.js';
 
@@ -33,7 +34,7 @@ const MAX_PORT_RETRIES = isDev ? 30 : 0;
 app.use('/uploads', express.static(uploadDir));
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: config.clientUrl, credentials: true }));
+app.use(cors({ origin: config.clientOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -114,6 +115,7 @@ function listenOnce() {
 }
 
 async function startServer() {
+  verifyProductionEnv();
   await connectDB();
 
   for (let attempt = 0; attempt <= MAX_PORT_RETRIES; attempt += 1) {

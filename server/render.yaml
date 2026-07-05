@@ -1,4 +1,5 @@
-# Render Blueprint — set Root Directory to "server" in dashboard, or deploy this folder as repo root
+# Render Blueprint
+# Repo layout: set Root Directory to "server" when connecting this monorepo.
 services:
   - type: web
     name: interviewiq-api

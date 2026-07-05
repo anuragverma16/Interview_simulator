@@ -2,6 +2,9 @@
   "name": "interviewiq-server",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "node scripts/freePort.js && nodemon",
     "dev:stack": "concurrently -n api,web -c cyan,magenta \"npm run dev\" \"npm run dev --prefix ../client\"",
