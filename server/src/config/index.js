@@ -5,13 +5,13 @@ function resolveMongoUri() {
   return (
     process.env.MONGODB_URI
     || process.env.DATABASE_URL
-    || 'mongodb://localhost:27017/interviewiq'
+    || 'mongodb+srv://InterviewIQ:808575@interviewiq.q2cyjbd.mongodb.net/?appName=InterviewIQ'
   );
 }
 
 function resolveClientOrigins() {
   const origins = new Set();
-  const primary = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const primary = (process.env.CLIENT_URL || 'https://interview-simulator-beta-henna.vercel.app/').replace(/\/$/, '');
   origins.add(primary);
 
   const extra = process.env.CORS_ORIGINS || process.env.CLIENT_URLS || '';
