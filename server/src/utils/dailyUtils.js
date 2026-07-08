@@ -51,10 +51,10 @@ export const POINTS = {
   STREAK_BONUS_PER_DAY: 0,
 };
 
-/** XP awarded per accepted solve (same values added to streak points for daily). */
+/** XP awarded per accepted solve (daily/streak = 5, unique practice = 2). */
 export const CODING_XP = {
   DAILY: 5,
-  PRACTICE: 1,
+  PRACTICE: 2,
 };
 
 export function calculateDailyReward(isCatchUp, _streakDays) {

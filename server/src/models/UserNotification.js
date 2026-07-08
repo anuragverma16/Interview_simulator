@@ -8,7 +8,7 @@ const userNotificationSchema = new mongoose.Schema(
     actionUrl: { type: String, default: '/dashboard' },
     actionLabel: { type: String, default: 'Open' },
     fromAdminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    kind: { type: String, enum: ['general', 'daily_problem'], default: 'general' },
+    kind: { type: String, enum: ['general', 'daily_problem', 'welcome', 'login_greeting'], default: 'general' },
     read: { type: Boolean, default: false },
     dismissed: { type: Boolean, default: false },
     expiresAt: { type: Date, required: true, index: true },

@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     refreshToken: { type: String, select: false },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date },
+    lastLoginEmailAt: { type: Date },
   },
   { timestamps: true }
 );

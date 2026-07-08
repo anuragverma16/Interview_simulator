@@ -5,6 +5,8 @@ import { generateTokens } from '../utils/jwt.js';
 import { AppError, asyncHandler, sendSuccess } from '../utils/helpers.js';
 import { syncCodingXp } from '../services/achievementService.js';
 import { syncMissedDays } from '../services/dailyChallengeService.js';
+import { sendLoginGreeting, sendSignupWelcome } from '../services/welcomeNotificationService.js';
+import { sendLoginSuccessEmail } from '../services/loginEmailService.js';
 
 export const register = [
   body('name').trim().notEmpty().withMessage('Name is required'),
@@ -20,6 +22,11 @@ export const register = [
     const { accessToken, refreshToken } = generateTokens(user._id);
     user.refreshToken = refreshToken;
     await user.save();
+
+    await sendSignupWelcome(user);
+    sendLoginSuccessEmail(user).catch((err) => {
+      console.warn('Signup email skipped:', err.message);
+    });
 
     sendSuccess(res, { user: user.toPublicJSON(), accessToken, refreshToken }, 'Registration successful', 201);
   }),
@@ -42,6 +49,11 @@ export const login = [
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
     await user.save();
+
+    await sendLoginGreeting(user);
+    sendLoginSuccessEmail(user).catch((err) => {
+      console.warn('Login email skipped:', err.message);
+    });
 
     sendSuccess(res, { user: user.toPublicJSON(), accessToken, refreshToken }, 'Login successful');
   }),

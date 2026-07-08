@@ -48,4 +48,27 @@ export const config = {
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10),
     uploadDir: process.env.UPLOAD_DIR || 'uploads',
   },
+  email: {
+    enabled: Boolean(process.env.SMTP_HOST && process.env.SMTP_PASS && (process.env.SMTP_USER || process.env.SMTP_HOST.includes('sendgrid'))),
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: (process.env.SMTP_HOST || '').includes('sendgrid')
+      ? 'apikey'
+      : (process.env.SMTP_USER || ''),
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || 'InterviewIQ AI <noreply@interviewiq.ai>',
+  },
+  emailjs: {
+    enabled: Boolean(
+      process.env.EMAILJS_SERVICE_ID
+      && process.env.EMAILJS_TEMPLATE_ID
+      && process.env.EMAILJS_PUBLIC_KEY
+      && process.env.EMAILJS_PRIVATE_KEY
+    ),
+    serviceId: process.env.EMAILJS_SERVICE_ID || '',
+    templateId: process.env.EMAILJS_TEMPLATE_ID || '',
+    publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
+    privateKey: process.env.EMAILJS_PRIVATE_KEY || '',
+  },
 };

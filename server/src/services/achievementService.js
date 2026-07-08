@@ -36,7 +36,7 @@ function applyLevel(stats) {
   stats.level = Math.max(1, Math.floor((stats.xp || 0) / XP_PER_LEVEL) + 1);
 }
 
-/** XP = coding solves only: 5 per daily, 1 per unique practice problem. */
+/** XP = coding solves only: 5 per daily/streak day, 2 per unique practice problem. */
 export async function syncCodingXp(userId) {
   const user = await User.findById(userId);
   if (!user) return 0;

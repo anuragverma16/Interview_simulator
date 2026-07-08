@@ -26,6 +26,7 @@ import publicRoutes from './routes/publicRoutes.js';
 import { warmJavaRuntime } from './services/codeRunner.js';
 import { startDailyProblemScheduler } from './services/dailyProblemService.js';
 import { uploadDir } from './middleware/upload.js';
+import { logEmailStatus } from './services/emailService.js';
 
 const app = express();
 const isDev = config.nodeEnv === 'development';
@@ -124,6 +125,7 @@ async function startServer() {
     try {
       server = await listenOnce();
       console.log(`InterviewIQ AI Server running on port ${config.port}`);
+      logEmailStatus();
       warmJavaRuntime().catch(() => {});
       dailyScheduler = startDailyProblemScheduler(60000);
       return;

@@ -401,6 +401,19 @@ export function getDailyStreakProblemForDate(dateStr) {
   return { ...PROBLEMS[idx], dailyDate: dateStr };
 }
 
+/** Pick a daily streak problem for a user, skipping slugs they already solved in streak history. */
+export function pickStreakProblemForUser(dateStr, excludeSlugs = []) {
+  const excluded = new Set(excludeSlugs);
+  const startIdx = hashDate(dateStr) % PROBLEMS.length;
+  for (let i = 0; i < PROBLEMS.length; i++) {
+    const problem = PROBLEMS[(startIdx + i) % PROBLEMS.length];
+    if (!excluded.has(problem.slug)) {
+      return { ...problem, dailyDate: dateStr };
+    }
+  }
+  return { ...PROBLEMS[startIdx], dailyDate: dateStr };
+}
+
 export function getStarterCode(problem, language) {
   if (problem.templates?.[language]) return problem.templates[language];
   const built = buildStarterTemplates(problem.functionName, problem.paramOrder, problem.testCases);

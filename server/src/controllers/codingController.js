@@ -28,6 +28,7 @@ import {
   formatProblemForClient,
   filterProblems,
   getTopics,
+  pickStreakProblemForUser,
 } from '../data/leetcodeProblems.js';
 import { resolveDailyProblem, resolveDailyProblemForDateStr, getAdminFeaturedPracticeProblem, getScheduleValidUntil } from '../services/dailyProblemService.js';
 import { dismissDailyProblemNotifications } from '../services/notificationService.js';
@@ -58,6 +59,17 @@ async function markProblemSolved(userId, problemSlug) {
     streak.solvedSlugs.push(problemSlug);
     await streak.save();
   }
+}
+
+function getStreakHistorySlugs(streak) {
+  return [...new Set((streak.streakHistory || []).map((h) => h.problemSlug).filter(Boolean))];
+}
+
+function resolveUserDailyProblem(baseProblem, dateStr, streak) {
+  if (!baseProblem) return null;
+  const seen = getStreakHistorySlugs(streak);
+  if (!seen.includes(baseProblem.slug)) return baseProblem;
+  return pickStreakProblemForUser(dateStr, seen);
 }
 
 async function completeDailyChallenge(userId, problemSlug, options = {}) {
@@ -300,6 +312,15 @@ export const getStreak = asyncHandler(async (req, res) => {
     await streak.save();
   }
 
+  const userDailyProblem = dailyProblem
+    ? resolveUserDailyProblem(dailyProblem, today, streak)
+    : null;
+
+  if (userDailyProblem && userDailyProblem.slug !== streak.todayProblemSlug) {
+    streak.todayProblemSlug = userDailyProblem.slug;
+    await streak.save();
+  }
+
   const certs = await Certificate.find({ userId: req.user._id }).sort({ earnedAt: -1 }).limit(10);
   const solvedSlugs = await getUserSolvedSlugs(req.user._id);
 
@@ -337,7 +358,7 @@ export const getStreak = asyncHandler(async (req, res) => {
     streakPoints: streak.streakPoints,
     totalSolved: streak.totalSolved,
     todaySolved: streak.lastSolvedDate === today && streak.todaySolved,
-    todayProblem: dailyProblem ? formatProblemForClient(dailyProblem) : null,
+    todayProblem: userDailyProblem ? formatProblemForClient(userDailyProblem) : null,
     dailyDate: today,
     dailyProblemPending: pending,
     dailyProblemExpired: expired,
@@ -412,7 +433,7 @@ export const startStreak = asyncHandler(async (req, res) => {
         403
       );
     }
-    problem = resolved.problem;
+    problem = resolveUserDailyProblem(resolved.problem, today, streak);
   }
 
   const session = await CodingSession.create({
