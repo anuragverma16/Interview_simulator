@@ -43,9 +43,9 @@ export async function refreshAccessToken(): Promise<string | null> {
 
   if (!refreshPromise) {
 
-    refreshPromise = axios
+    refreshPromise = api
 
-      .post('/api/v1/auth/refresh', { refreshToken })
+      .post('/auth/refresh', { refreshToken })
 
       .then(({ data }) => {
 
