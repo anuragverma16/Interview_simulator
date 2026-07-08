@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { applyThemeToDocument, type ThemeMode } from '../utils/theme';
 
-export type ThemeMode = 'dark' | 'light';
+export type { ThemeMode };
 export type TextSize = 'small' | 'medium' | 'large';
 
 export interface DisplaySettings {
@@ -23,15 +24,23 @@ const defaults: DisplaySettings = {
 function loadStored(): DisplaySettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaults, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<DisplaySettings>;
+      return {
+        theme: parsed.theme === 'light' ? 'light' : 'dark',
+        textSize: parsed.textSize || defaults.textSize,
+        showParticles: parsed.showParticles ?? defaults.showParticles,
+        reduceMotion: parsed.reduceMotion ?? defaults.reduceMotion,
+      };
+    }
   } catch { /* ignore */ }
   return defaults;
 }
 
 function applyToDocument(s: DisplaySettings) {
+  applyThemeToDocument(s.theme);
   const root = document.documentElement;
-  root.classList.remove('theme-dark', 'theme-light', 'reduce-motion');
-  root.classList.add(s.theme === 'light' ? 'theme-light' : 'theme-dark');
+  root.classList.remove('reduce-motion');
   if (s.reduceMotion) root.classList.add('reduce-motion');
 }
 
@@ -71,16 +80,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [settings]);
 
   useEffect(() => {
-    if (user?.settings) {
-      const fromUser: DisplaySettings = {
-        theme: (user.settings.theme as ThemeMode) || defaults.theme,
-        textSize: (user.settings.textSize as TextSize) || defaults.textSize,
-        showParticles: user.settings.showParticles ?? defaults.showParticles,
-        reduceMotion: user.settings.reduceMotion ?? defaults.reduceMotion,
-      };
-      persist(fromUser);
-    }
+    if (!user?.settings) return;
+    persist({
+      theme: 'dark',
+      textSize: (user.settings.textSize as TextSize) || defaults.textSize,
+      showParticles: user.settings.showParticles ?? defaults.showParticles,
+      reduceMotion: user.settings.reduceMotion ?? defaults.reduceMotion,
+    });
   }, [user?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!user) {
+      persist({ ...loadStored(), theme: 'dark' });
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateDisplay = (patch: Partial<DisplaySettings>) => {
     persist({ ...settings, ...patch });

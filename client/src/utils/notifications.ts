@@ -11,7 +11,7 @@ export interface AppNotification {
   read?: boolean;
   dismissed?: boolean;
   fromAdminName?: string;
-  kind?: 'general' | 'daily_problem';
+  kind?: 'general' | 'daily_problem' | 'welcome' | 'login_greeting';
 }
 
 export interface UserNotificationRecord {
@@ -23,7 +23,7 @@ export interface UserNotificationRecord {
   expiresAt: string;
   read: boolean;
   dismissed?: boolean;
-  kind?: 'general' | 'daily_problem';
+  kind?: 'general' | 'daily_problem' | 'welcome' | 'login_greeting';
   createdAt: string;
   fromAdminId?: { name: string };
 }
@@ -42,7 +42,8 @@ export function mapUserNotifications(records: UserNotificationRecord[]): AppNoti
       actionLabel: n.actionLabel || 'Open',
       read: n.read,
       dismissed: n.dismissed,
-      fromAdminName: n.fromAdminId?.name,
+      fromAdminName: n.fromAdminId?.name
+        || (n.kind === 'welcome' || n.kind === 'login_greeting' ? 'InterviewIQ AI Team' : undefined),
       kind: n.kind || 'general',
     }));
 }

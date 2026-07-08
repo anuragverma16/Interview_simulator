@@ -34,7 +34,7 @@ export default function DashboardLayout() {
 
   return (
     <LayoutProvider value={{ streak, streakData, refreshStreak }}>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[var(--bg-page)] text-themed">
         {showParticles && !reduceMotion && <ParticleBackground />}
         {!reduceMotion && <MouseGlow />}
         <Sidebar />

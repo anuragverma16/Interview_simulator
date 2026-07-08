@@ -297,7 +297,7 @@ export const codingApi = {
 
   getCertificates: () => api.get('/coding/certificates'),
 
-  getCertificateHtml: (id: string) => api.get(`/coding/certificates/${id}/html`),
+  getCertificateHtml: (id: string) => api.get(`/coding/certificates/${id}/html`, { responseType: 'text' }),
 
   start: (data: object) => api.post('/coding/start', data),
 

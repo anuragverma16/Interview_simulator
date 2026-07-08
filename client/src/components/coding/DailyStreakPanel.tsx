@@ -5,6 +5,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import type { CodingStreakData, MissedChallenge } from '../../types';
 import { cn } from '../../utils/cn';
+import { openCertificateHtml } from '../../utils/certificate';
 
 interface Props {
   streak: CodingStreakData;
@@ -236,17 +237,16 @@ export default function DailyStreakPanel({
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {streak.certificates.map((c) => (
-              <a
+              <button
                 key={c._id}
-                href={`/api/v1/coding/certificates/${c._id}/html`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 hover:border-purple-500/40 transition-colors"
+                type="button"
+                onClick={() => openCertificateHtml(c._id)}
+                className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4 hover:border-purple-500/40 transition-colors text-left w-full"
               >
                 <p className="text-xs text-purple-400 mb-1">Day {c.streakDay} Streak</p>
                 <p className="font-medium text-sm truncate">{c.problemTitle}</p>
                 <p className="text-[10px] text-white/30 mt-2 font-mono">{c.certId}</p>
-              </a>
+              </button>
             ))}
           </div>
         </Card>

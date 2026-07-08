@@ -6,6 +6,7 @@ import FadeInUp from '../components/animations/FadeInUp';
 import type { Achievement, MilestoneBadge } from '../types';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
 import { cn } from '../utils/cn';
+import { openCertificateHtml } from '../utils/certificate';
 
 const MILESTONE_STYLES: Record<number, string> = {
   50: 'from-amber-700/30 to-amber-900/20 border-amber-600/40',
@@ -90,14 +91,13 @@ export default function AchievementsPage() {
                     <p className="text-xs text-white/50 mt-1">{badge.description}</p>
                   </div>
                   {badge.earned && badge.certificate ? (
-                    <a
-                      href={`/api/v1/coding/certificates/${badge.certificate._id}/html`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => openCertificateHtml(badge.certificate!._id)}
                       className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-1"
                     >
                       View certificate <ExternalLink className="h-3 w-3" />
-                    </a>
+                    </button>
                   ) : badge.earned ? (
                     <span className="text-[10px] uppercase tracking-wide text-emerald-400 font-semibold">Earned</span>
                   ) : (

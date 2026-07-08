@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Award, Download, X } from 'lucide-react';
 import Button from '../ui/Button';
 import type { Certificate } from '../../types';
+import { openCertificateHtml } from '../../utils/certificate';
 
 interface Props {
   certificate: Certificate | null;
@@ -12,8 +13,7 @@ export default function CertificateModal({ certificate, onClose }: Props) {
   if (!certificate) return null;
 
   const openPrintable = () => {
-    const url = `/api/v1/coding/certificates/${certificate._id}/html`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    openCertificateHtml(certificate._id);
   };
 
   return (

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 
 import { authApi, refreshAccessToken, isTokenExpired } from '../services/api';
-
+import { forceDarkTheme } from '../utils/theme';
 import type { User } from '../types';
 
 
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('refreshToken', data.data.refreshToken);
 
     setUser(data.data.user);
-
+    forceDarkTheme();
     return data.data.user as User;
 
   };
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('refreshToken', data.data.refreshToken);
 
     setUser(data.data.user);
-
+    forceDarkTheme();
   };
 
 

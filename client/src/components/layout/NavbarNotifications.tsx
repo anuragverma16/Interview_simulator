@@ -28,6 +28,8 @@ import { notificationApi } from '../../services/api';
 
 import { cn } from '../../utils/cn';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 
 
 interface Props {
@@ -62,6 +64,7 @@ function dismissStreakNotifications(streakData: CodingStreakData | null, setDism
 
 export default function NavbarNotifications({ streakData }: Props) {
 
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const [adminNotes, setAdminNotes] = useState<UserNotificationRecord[]>([]);
@@ -250,13 +253,18 @@ export default function NavbarNotifications({ streakData }: Props) {
 
   useEffect(() => {
 
+    if (!user?._id) {
+      setAdminNotes([]);
+      return;
+    }
+
     loadAdminNotes();
 
-    const id = setInterval(loadAdminNotes, 30000);
+    const id = setInterval(loadAdminNotes, 15000);
 
     return () => clearInterval(id);
 
-  }, [loadAdminNotes]);
+  }, [loadAdminNotes, user?._id]);
 
 
 
@@ -431,23 +439,16 @@ export default function NavbarNotifications({ streakData }: Props) {
                       <div className="flex gap-2 pr-6">
 
                         <div className={cn(
-
                           'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
-
                           n.type === 'admin_message'
-
-                            ? n.kind === 'daily_problem'
-
-                              ? 'bg-orange-500/15 text-orange-500'
-
-                              : 'bg-purple-500/15 text-purple-400'
-
+                            ? n.kind === 'welcome' || n.kind === 'login_greeting'
+                              ? 'bg-cyan-500/15 text-cyan-400'
+                              : n.kind === 'daily_problem'
+                                ? 'bg-orange-500/15 text-orange-500'
+                                : 'bg-purple-500/15 text-purple-400'
                             : n.type === 'daily_streak'
-
                               ? 'bg-orange-500/15 text-orange-500'
-
                               : 'bg-amber-500/15 text-amber-500'
-
                         )}>
 
                           {n.type === 'admin_message' ? (
@@ -481,16 +482,19 @@ export default function NavbarNotifications({ streakData }: Props) {
                           </p>
 
                           {n.fromAdminName && (
-
-                            <p className="text-[10px] text-purple-500/80 dark:text-purple-400/80 mt-0.5">
-
-                              From admin · {n.fromAdminName}
-
+                            <p className={cn(
+                              'text-[10px] mt-0.5',
+                              n.kind === 'welcome' || n.kind === 'login_greeting'
+                                ? 'text-cyan-400/90'
+                                : 'text-purple-500/80 dark:text-purple-400/80'
+                            )}>
+                              {n.kind === 'welcome' || n.kind === 'login_greeting'
+                                ? `From ${n.fromAdminName}`
+                                : `From admin · ${n.fromAdminName}`}
                             </p>
-
                           )}
 
-                          <p className="text-[11px] text-muted mt-1 line-clamp-2">{n.message}</p>
+                          <p className="text-[11px] text-white/70 mt-1 line-clamp-3 whitespace-pre-line">{n.message}</p>
 
                           <p className="flex items-center gap-1 text-[10px] text-muted mt-1.5">
 
@@ -506,7 +510,12 @@ export default function NavbarNotifications({ streakData }: Props) {
 
                             onClick={() => handleNotificationClick(n.id, n.type)}
 
-                            className="inline-block mt-2 text-[11px] font-medium text-purple-500 dark:text-purple-400 hover:underline"
+                            className={cn(
+                              'inline-block mt-2 text-[11px] font-medium hover:underline',
+                              n.kind === 'welcome' || n.kind === 'login_greeting'
+                                ? 'text-cyan-400'
+                                : 'text-purple-500 dark:text-purple-400'
+                            )}
 
                           >
 
