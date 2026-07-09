@@ -5,13 +5,12 @@ function resolveMongoUri() {
   return (
     process.env.MONGODB_URI
     || process.env.DATABASE_URL
-    || 'mongodb://localhost:27017/interviewiq'
   );
 }
 
 function resolveClientOrigins() {
   const origins = new Set();
-  const primary = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const primary = (process.env.CLIENT_URL).replace(/\/$/, '');
   origins.add(primary);
 
   const extra = process.env.CORS_ORIGINS || process.env.CLIENT_URLS || '';
