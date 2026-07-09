@@ -34,8 +34,14 @@ const pdfFilter = (_req, file, cb) => {
 };
 
 const imageFilter = (_req, file, cb) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (allowed.includes(file.mimetype)) cb(null, true);
+  const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  const isImageMime = file.mimetype.startsWith('image/')
+    || allowed.includes(file.mimetype)
+    || (file.mimetype === 'application/octet-stream' && allowedExt.includes(ext));
+
+  if (isImageMime || allowedExt.includes(ext)) cb(null, true);
   else cb(new Error('Only JPEG, PNG, WebP, or GIF images are allowed'), false);
 };
 

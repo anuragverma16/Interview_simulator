@@ -1,29 +1,71 @@
 import vm from 'vm';
 import { spawn } from 'child_process';
-import { writeFile, unlink, mkdir, rm } from 'fs/promises';
+import { writeFile, unlink, mkdir, rm, readdir } from 'fs/promises';
+import { existsSync } from 'fs';
 import { join } from 'path';
-import { tmpdir } from 'os';
+import { tmpdir, homedir } from 'os';
 import { randomUUID } from 'crypto';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const { JavaCaller } = require('java-caller');
 
+const EXE_EXT = process.platform === 'win32' ? '.exe' : '';
+
 let javaToolsPromise = null;
+
+/** JDKs previously downloaded by java-caller live under ~/.java-caller/jre/<version>/bin. */
+async function findDownloadedJdk() {
+  const jreRoot = join(homedir(), '.java-caller', 'jre');
+  try {
+    const entries = await readdir(jreRoot);
+    for (const entry of entries.sort().reverse()) {
+      const bin = join(jreRoot, entry, 'bin');
+      const javac = join(bin, `javac${EXE_EXT}`);
+      if (existsSync(javac)) {
+        return { java: join(bin, `java${EXE_EXT}`), javac };
+      }
+    }
+  } catch {
+    // no downloaded JDK yet
+  }
+  return null;
+}
+
+async function resolveJavaTools() {
+  const downloaded = await findDownloadedJdk();
+  if (downloaded) return downloaded;
+
+  // Ask java-caller to locate a system JDK or download one
+  const caller = new JavaCaller({
+    minimumJavaVersion: 17,
+    maximumJavaVersion: 21,
+    javaType: 'jdk',
+  });
+  await caller.run(['-version']).catch(() => {});
+  const javaExe = (caller.javaExecutableFromNodeJavaCaller || caller.javaExecutable || '').replace(/"/g, '');
+
+  if (javaExe && javaExe !== 'java') {
+    const javacExe = javaExe.replace(/java(w)?(\.exe)?$/i, (_m, _w, ext) => `javac${ext || ''}`);
+    if (existsSync(javacExe)) {
+      return { java: javaExe, javac: javacExe };
+    }
+  }
+
+  // java-caller may have downloaded a JDK during run() — check again
+  const postDownload = await findDownloadedJdk();
+  if (postDownload) return postDownload;
+
+  throw new Error('Java compiler (javac) not available. The JDK download may still be in progress — try again in a minute.');
+}
 
 async function ensureJavaTools() {
   if (!javaToolsPromise) {
-    javaToolsPromise = (async () => {
-      const caller = new JavaCaller({
-        minimumJavaVersion: 17,
-        maximumJavaVersion: 21,
-        javaType: 'jdk',
-      });
-      await caller.run(['-version']).catch(() => {});
-      let javaExe = (caller.javaExecutableFromNodeJavaCaller || caller.javaExecutable || 'java').replace(/"/g, '');
-      let javacExe = javaExe.replace(/java(w)?(\.exe)?$/i, (_m, _w, ext) => `javac${ext || ''}`);
-      return { java: javaExe, javac: javacExe };
-    })();
+    javaToolsPromise = resolveJavaTools().catch((err) => {
+      // Don't cache failures — allow retry on the next run
+      javaToolsPromise = null;
+      throw err;
+    });
   }
   return javaToolsPromise;
 }
