@@ -5,7 +5,6 @@ function resolveMongoUri() {
   return (
     process.env.MONGODB_URI
     || process.env.DATABASE_URL
-    || 'mongodb://localhost:27017/interviewiq'
   );
 }
 
@@ -31,8 +30,12 @@ function isLocalDevEnvironment() {
 
 function resolveClientOrigins() {
   const origins = new Set();
+<<<<<<< HEAD
 
   const primary = normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173');
+=======
+  const primary = (process.env.CLIENT_URL).replace(/\/$/, '');
+>>>>>>> eb52d8a3e626ddee88a76041cef5de7f8e276854
   origins.add(primary);
 
   const extra = process.env.CORS_ORIGINS || process.env.CLIENT_URLS || '';
