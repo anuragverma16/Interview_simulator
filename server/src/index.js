@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
-import { config } from './config/index.js';
+import { config, corsOriginValidator } from './config/index.js';
 import { connectDB, markDbShuttingDown } from './config/database.js';
 import { verifyProductionEnv } from './config/verifyEnv.js';
 import { errorHandler, notFound, authenticate } from './middleware/index.js';
@@ -35,7 +35,12 @@ const MAX_PORT_RETRIES = isDev ? 30 : 0;
 app.use('/uploads', express.static(uploadDir));
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: config.clientOrigins, credentials: true }));
+app.use(cors({
+  origin: corsOriginValidator,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -125,6 +130,7 @@ async function startServer() {
     try {
       server = await listenOnce();
       console.log(`InterviewIQ AI Server running on port ${config.port}`);
+      console.log(`[CORS] Allowed origins: ${config.clientOrigins.join(', ')}`);
       logEmailStatus();
       warmJavaRuntime().catch(() => {});
       dailyScheduler = startDailyProblemScheduler(60000);

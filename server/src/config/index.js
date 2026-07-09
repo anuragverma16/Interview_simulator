@@ -9,18 +9,68 @@ function resolveMongoUri() {
   );
 }
 
+const PRODUCTION_CLIENT_ORIGINS = [
+  'https://interview-simulator-beta-henna.vercel.app',
+];
+
+function normalizeOrigin(url) {
+  return String(url || '').trim().replace(/\/$/, '');
+}
+
+function isLocalDevEnvironment() {
+  const nodeEnv = process.env.NODE_ENV || (isCloudHost ? 'production' : 'development');
+  if (nodeEnv === 'production' || isCloudHost) return false;
+
+  const mongo = process.env.MONGODB_URI || process.env.DATABASE_URL || '';
+  const hasRemoteDb = mongo.includes('mongodb.net') || mongo.includes('mongodb+srv');
+  if (hasRemoteDb) return false;
+
+  const client = normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173');
+  return client.includes('localhost') || client.includes('127.0.0.1');
+}
+
 function resolveClientOrigins() {
   const origins = new Set();
-  const primary = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+
+  const primary = normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173');
   origins.add(primary);
 
   const extra = process.env.CORS_ORIGINS || process.env.CLIENT_URLS || '';
   for (const part of extra.split(',')) {
-    const url = part.trim().replace(/\/$/, '');
+    const url = normalizeOrigin(part);
     if (url) origins.add(url);
   }
 
+  if (!isLocalDevEnvironment()) {
+    for (const url of PRODUCTION_CLIENT_ORIGINS) {
+      origins.add(url);
+    }
+  }
+
   return [...origins];
+}
+
+/** Allow listed origins plus Vercel preview deploys in production. */
+export function corsOriginValidator(origin, callback) {
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+
+  const normalized = normalizeOrigin(origin);
+  if (config.clientOrigins.includes(normalized)) {
+    callback(null, true);
+    return;
+  }
+
+  const isProduction = !isLocalDevEnvironment();
+  if (isProduction && /^https:\/\/[\w.-]+\.vercel\.app$/.test(normalized)) {
+    callback(null, true);
+    return;
+  }
+
+  console.warn(`[CORS] Blocked origin: ${origin}`);
+  callback(null, false);
 }
 
 export const isCloudHost = Boolean(

@@ -22,7 +22,10 @@ export function verifyProductionEnv() {
       issues.push('JWT_REFRESH_SECRET — random secret for refresh tokens');
     }
     if (!process.env.CLIENT_URL) {
-      issues.push('CLIENT_URL — your frontend URL for CORS (e.g. https://your-app.vercel.app)');
+      console.warn(
+        '[env] CLIENT_URL not set — using production CORS fallbacks (Vercel). '
+        + 'Set CLIENT_URL=https://interview-simulator-beta-henna.vercel.app on your host for explicit config.'
+      );
     }
   }
 
